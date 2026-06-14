@@ -99,7 +99,7 @@ SIF_USER_AGENT = settings.sif_user_agent
 
 
 def build_excel_path(group_name: str) -> Path:
-    return EXCEL_BASE_DIR / f"{group_name}.xlsx"
+    return EXCEL_BASE_DIR / f"产品信息汇总-{group_name}.xlsx"
 
 
 def get_local_db_config() -> dict:

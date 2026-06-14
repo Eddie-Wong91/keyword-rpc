@@ -1,3 +1,5 @@
+import atexit
+
 from flask import Flask, jsonify, request
 
 from _lx_get_keyword_rank import lx_get_keyword_rank_data
@@ -149,4 +151,6 @@ def rpc_handler():
 
 
 if __name__ == "__main__":
+    atexit.register(lambda: lx_mysql_handler.close() if lx_mysql_handler is not None else None)
+    atexit.register(lambda: sif_mysql_handler.close() if sif_mysql_handler is not None else None)
     app.run(host=RPC_HOST, port=RPC_PORT, debug=RPC_DEBUG, use_reloader=False)
