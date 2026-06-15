@@ -5,4 +5,4 @@ if exist ".venv\Scripts\python.exe" (
 ) else (
     python batch_request_sif.py %1
 )
-pause
+exit /b %ERRORLEVEL%
