@@ -15,14 +15,46 @@ The local Flask service exposes a single JSON-RPC endpoint. Batch clients read E
 
 - `batch_request_lx.py`
 - `batch_request_sif.py`
+- `run_batch_request_lx.bat`
+- `run_batch_request_sif.bat`
 
 Responsibilities:
 
+- provide a Windows/RPA-friendly entry point
 - read Excel by group name
 - expand rows into individual keyword tasks
 - load upstream credentials
 - call the local RPC service
 - aggregate success/failure counts
+
+### Batch wrapper role
+
+The `.bat` files are thin wrappers around the Python batch clients.
+
+Responsibilities:
+
+- switch to the project directory
+- prefer `.venv\Scripts\python.exe` when present
+- fall back to system `python` otherwise
+- pass the group name argument through to the Python script
+- return the final process exit code back to the caller
+
+The final line:
+
+```bat
+exit /b %ERRORLEVEL%
+```
+
+does not affect log capture. Its purpose is to propagate the Python script exit code to the parent process, such as RPA or another scheduler.
+
+That means the caller can distinguish between:
+
+- completed successfully
+- completed with partial failures
+- completed with full failure
+- completed with initialization or input errors
+
+RPA can capture console logs independently because Python logging is configured with a console `StreamHandler`.
 
 ### 2. RPC server
 
@@ -152,6 +184,23 @@ Each row is converted into one or more tasks:
 - `keyword`
 
 If the keyword cell contains `a|b|c`, the batch client expands it into three tasks.
+
+## Exit Code Contract
+
+The batch scripts exit with the same code returned by the Python batch clients.
+
+Current meaning:
+
+- `0`: all tasks succeeded
+- `1`: initialization failure, invalid input, missing argument, missing Excel file, or no valid tasks
+- `2`: partially successful batch
+- `3`: all tasks failed
+
+Interpretation notes:
+
+- once RPA receives an exit code, the batch process has finished
+- the numeric value indicates business outcome, not whether the process ended
+- whether RPA treats non-zero codes as failure depends on the RPA-side rule configuration
 
 ## RPC Contract
 
@@ -343,4 +392,3 @@ Main external failure points:
 - local RPC service not running
 
 The current implementation logs failures and keeps per-task success/failure accounting in the batch clients.
-
